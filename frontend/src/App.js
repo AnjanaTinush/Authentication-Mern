@@ -7,6 +7,7 @@ import Forgot from './pages/auth/Forgot';
 import Reset from './pages/auth/Reset';
 import LoginWithCode from './pages/auth/LoginWithCode';
 import Profile from './pages/profile/Profile';
+import Verify from './pages/auth/Verify';
 
 function App() {
   return (
@@ -19,7 +20,9 @@ function App() {
    <Route path="/forgot" element={<Forgot/>}/>
    <Route path="/resetPassword/:resetToken" element={<Reset/>}/>
    <Route path="/loginWithCode/:email" element={<LoginWithCode/>}/>
+   <Route path='/verify/:verificationTocken' element={<Layout> <Verify/> </Layout> }/>
    <Route path="/profile" element={<Layout> <Profile/> </Layout>} />
+   
    </Routes>
    </BrowserRouter>
   
