@@ -11,10 +11,13 @@ import Verify from './pages/auth/Verify';
 import ChangePassword from './pages/changePassword/ChangePassword';
 import UserList from './pages/userList/UserList';
 
+
 function App() {
   return (
    <>
+
    <BrowserRouter>
+   
    <Routes>
    <Route path="/" element={ <Layout> <Home/> </Layout>}/>
    <Route path="/login" element={  <Login/> }/>
