@@ -71,6 +71,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+
 // Login User
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -156,22 +157,46 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-//Logout User
-const logoutUser = asyncHandler (async(req,res)=>{
-  res.cookie("token","",{
-    path:'/',
-    httpOnly:true,
-    expires:new Date(0), 
-    sameSite:'none',
-    secure :true,
-  })
-return res.status(200).json({message : "Logout successfull"});
+// Logout User
+const logoutUser = asyncHandler(async (req, res) => {
+  res.cookie("token", "", {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(0),
+    sameSite: "none",
+    secure: true,
+  });
+  return res.status(200).json("Logout Successful");
+});
 
-})
+// Get User Data
+const getUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    const { _id, name, email, photo, phone, bio, isVerified, role, vToken } =
+      user;
+    res.status(200).json({
+      _id,
+      name,
+      email,
+      photo,
+      phone,
+      bio,
+      isVerified,
+      role,
+      vToken,
+    });
+  } else {
+    res.status(400);
+    throw new Error("User Not Found");
+  }
+});
 
 
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
+  getUser,
 };
