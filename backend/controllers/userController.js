@@ -5,12 +5,7 @@ const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const parser = require("ua-parser-js");
-
-;
-const {  generateToken} = require("../utils");
-
-
-
+const { generateToken } = require("../utils");
 
 // Register User
 const registerUser = asyncHandler(async (req, res) => {
@@ -46,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
     userAgent,
   });
 
-  //   Generate JWT Token
+  // Generate JWT Token
   const token = generateToken(user._id);
 
   // Send HTTP-only cookie
@@ -76,7 +71,93 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+// Login User
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-module.exports={
-    registerUser
-}
+  // Validate Request
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Please add email and password");
+  }
+
+  // Check if user exists
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.status(400);
+    throw new Error("User not found, please signup");
+  }
+
+  // User exists, check if password is correct
+  const passwordIsCorrect = await bcrypt.compare(password, user.password);
+
+  if (!passwordIsCorrect) {
+    res.status(400);
+    throw new Error("Invalid email or password");
+  }
+
+  // Trigger 2FA for unknown userAgent/device
+  const ua = parser(req.headers["user-agent"]);
+  const thisUserAgent = ua.ua;
+  console.log(thisUserAgent);
+  const allowedDevice = user.userAgent.includes(thisUserAgent);
+
+  if (!allowedDevice) {
+    const loginCode = Math.floor(100000 + Math.random() * 900000);
+    // Hash token before saving to DB
+    const encryptedLoginCode = cryptr.encrypt(loginCode.toString());
+
+    // Delete token if it exists in DB
+    let userToken = await Token.findOne({ userId: user._id });
+    if (userToken) {
+      await userToken.deleteOne();
+    }
+
+    // Save Access Token to DB
+    await new Token({
+      userId: user._id,
+      loginToken: encryptedLoginCode,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60 * (60 * 1000), // Thirty minutes
+    }).save();
+
+    res.status(400);
+    throw new Error("Check your email for login code");
+  }
+
+  //   Generate Token
+  const token = generateToken(user._id);
+  if (user && passwordIsCorrect) {
+    // Send HTTP-only cookie
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400), // 1 day
+      sameSite: "none",
+      secure: true,
+    });
+
+    const { _id, name, email, photo, phone, bio, isVerified, role } = user;
+    res.status(200).json({
+      _id,
+      name,
+      email,
+      photo,
+      phone,
+      bio,
+      isVerified,
+      role,
+      token,
+    });
+  } else {
+    res.status(400);
+    throw new Error("Something went wrong, please try again");
+  }
+});
+
+
+module.exports = {
+  registerUser,
+  loginUser,
+};
