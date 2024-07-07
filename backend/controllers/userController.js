@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const parser = require("ua-parser-js");
 const { generateToken } = require("../utils");
 
+
 // Register User
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -253,6 +254,41 @@ const getUsers = asyncHandler (async(req,res)=>{
   res.status(200).json(users)
 })
 
+//get login status
+const loginstatus = asyncHandler (async(req,res)=>{
+  const token = req.cookies.token
+if(!token){
+  return res.json(false)
+}
+
+//Verified token
+const verified = jwt.verify(token,process.env.JWT_SECRET);
+
+if(verified){
+  return res.json(true)
+}
+  return res.json(false)
+
+
+})
+
+const upgradeUser = asyncHandler(async (req, res) => {
+  const { role, id } = req.body;
+
+  const user = await User.findById(id); // Corrected this line
+
+  if (!user) {
+    res.status(500);
+    throw new Error("User not found");
+  }
+
+  user.role = role;
+  await user.save();
+
+  res.status(200).json({ message: `User role updated to ${role}` });
+});
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -261,4 +297,6 @@ module.exports = {
   updateUser,
   deleteUser,
   getUsers,
+  loginstatus,
+  upgradeUser,
 };

@@ -1,5 +1,5 @@
 const express=require("express")
-const { registerUser,loginUser,logoutUser,getUser,updateUser,deleteUser, getUsers } = require("../controllers/userController")
+const { registerUser,loginUser,logoutUser,getUser,updateUser,deleteUser, getUsers, loginstatus, upgradeUser } = require("../controllers/userController")
 const router = express.Router()
 const {protect, adminonly, authornonly} = require("../middleware/authMiddleware")
 
@@ -10,5 +10,7 @@ router.get("/getuser", protect, getUser)
 router.patch("/updateuser",protect,updateUser);
 router.delete("/:id",protect,adminonly,deleteUser);
 router.get("/getusers",protect,authornonly,getUsers)
+router.get("/loginsatatus" ,loginstatus)
+router.post("/upgradeuser",protect,adminonly,upgradeUser)
 
 module.exports=router
