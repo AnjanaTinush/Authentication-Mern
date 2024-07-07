@@ -228,10 +228,37 @@ const updateUser = asyncHandler (async(req,res) =>{
   
 })
 
+//delete user
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  await user.deleteOne();
+  res.status(200).json({ message: "User deleted successfully" });
+});
+
+//get users
+const getUsers = asyncHandler (async(req,res)=>{
+  res.status("get users")
+  const users = await User.find().sort("-createdAt").select("-password")
+
+  if(!users){
+    res.status(500)
+    throw new Error("Something went wrong")
+  }
+  res.status(200).json(users)
+})
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   getUser,
   updateUser,
+  deleteUser,
+  getUsers,
 };
